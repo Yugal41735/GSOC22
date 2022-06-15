@@ -110,7 +110,7 @@ public final class PersonalImageClassifier extends AndroidNonvisibleComponent
     private List<String> labels = Collections.emptyList();
     private String modelPath = null;
     private boolean running = false;
-    // Unable to understand
+    // Unable to understand[may be min time for classifier to get ready]
     private int minClassTime = 0;
 
     // common for every extension
@@ -173,7 +173,7 @@ public final class PersonalImageClassifier extends AndroidNonvisibleComponent
                         zipInputStream.close();
                     }
 
-                    // For android camera
+                    // For android permission
                     if (file != null) {
                         if (SdkLevel.getLevel() >= SdkLevel.LEVEL_LOLLIPOP) {
                             Map<String, String> responseHeaders = new HashMap<>();
@@ -300,7 +300,7 @@ public final class PersonalImageClassifier extends AndroidNonvisibleComponent
     }
 
 
-    // Unable to understand
+    // return whether the classfier is running or not
     @SimpleProperty(category = PropertyCategory.BEHAVIOR)
     public boolean Running() {
         return running;
@@ -442,7 +442,7 @@ public final class PersonalImageClassifier extends AndroidNonvisibleComponent
         }
     }
 
-    // unable to understand
+    // unable to understand [may be different labels]
     private static List<String> parseLabels(String labels) {
         List<String> result = new ArrayList<>();
         try {
