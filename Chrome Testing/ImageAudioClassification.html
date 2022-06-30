@@ -1,0 +1,27 @@
+<div>Teachable Machine Model</div>
+<!-- Buttons to initiate image or audio model -->
+<button type="button" id = "ima" onclick="init()">Image</button>
+<button type="button" id = "aud" onclick="init1()">Audio</button>
+<!-- Webcam screen -->
+<div id="webcam-container"></div>
+<!-- Display lables with probability -->
+<div id="label-container"></div>
+<!-- Image tag -->
+<body>
+    <img id = "img" src = "https://thumbs.dreamstime.com/z/ready-word-dry-erase-board-prepared-question-readiness-preparati-mark-written-red-marker-to-ask-if-you-test-41445552.jpg" height="300" width="300">
+</body>
+
+
+
+<!-- Common js file to be used in both image and audio classification  -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<!-- File to be used in case of image classification -->
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+<script src="image1.js"></script>
+<!-- File to be used in audio model -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
+<script src="audio1.js"></script>
+
+
+
+
