@@ -3,7 +3,7 @@
 // Released under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-package edu.mit.appinventor.ai.personalimageclassifier;
+package edu.mit.appinventor.ai.teachablemachine;
 
 import android.Manifest;
 import android.os.Build;
@@ -23,14 +23,14 @@ class SDK26Helper {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
   }
 
-  static void askForPermission(final PersonalImageClassifier personalImageClassifier, final Runnable next) {
-    personalImageClassifier.getForm().askPermission(Manifest.permission.CAMERA, new PermissionResultHandler() {
+  static void askForPermission(final TeachableMachine teachableMachine, final Runnable next) {
+    teachableMachine.getForm().askPermission(Manifest.permission.CAMERA, new PermissionResultHandler() {
       @Override
       public void HandlePermissionResponse(String permission, boolean granted) {
         if (granted) {
           next.run();
         } else {
-          personalImageClassifier.getForm().PermissionDenied(personalImageClassifier, "WebViewer", permission);
+          teachableMachine.getForm().PermissionDenied(teachableMachine, "WebViewer", permission);
         }
       }
     });
