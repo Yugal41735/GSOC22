@@ -99,7 +99,7 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
     private static final String ERROR_WEBVIEWER_NOT_SET =
             "You must specify a WebViewer using the WebViewer designer property before you can call %1s";
 //    private static final String MODEL_PATH_SUFFIX = ".mdl";
-    private static final String MODEL_PATH_SUFFIX = ".tflite";
+//    private static final String MODEL_PATH_SUFFIX = ".tflite";
 //    private static final String modelPath = ""
     // Unable to understand
 //    private static final String TRANSFER_MODEL_PREFIX = "https://appinventor.mit.edu/personal-image-classifier/transfer/";
@@ -151,7 +151,7 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
 //        interpreter.run(input, output);
 //    }
     private static final String MODEL_URL =
-            "https://teachablemachine.withgoogle.com/models/uZCBCIj3D/";
+            "https://teachablemachine.withgoogle.com/models/bgmPxpAwO/";
     private static final String BACK_CAMERA = "Back";
     private static final String FRONT_CAMERA = "Front";
 

@@ -62,8 +62,22 @@ model = await tmImage.load(modelURL, metadataURL);
 
 maxPredictions = model.getTotalClasses();
 
+console.log("Model Loaded !!")
 
 
+
+// Inputing image data
+// let androidWebcam = new tmImage.webcamHolder(200,200, flip);
+// await androidWebcam.setup()
+// await androidWebcam.play()
+// window.requestAnimationFrame(loop)
+
+
+// async function loop() {
+//   androidWebcam.update()
+//   await predict(img);
+//   window.requestAnimationFrame(loop)
+// }
 
 
 // async function loadTransferModel(modelName, modelActivation) {
@@ -334,7 +348,7 @@ window.addEventListener("resize", function() {
   video.height = video.videoHeight * window.innerWidth / video.videoWidth;
 });
 
-loadModel().catch(() => TeachableMachine.error(ERROR_CLASSIFICATION_NOT_SUPPORTED));
+// loadModel().catch(() => TeachableMachine.error(ERROR_CLASSIFICATION_NOT_SUPPORTED));
 
 window.addEventListener('orientationchange', function() {
   if (isVideoMode) {
