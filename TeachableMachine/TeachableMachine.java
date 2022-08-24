@@ -5,6 +5,12 @@
 
 package edu.mit.appinventor.ai.teachablemachine;
 
+import android.Manifest;
+import android.Manifest.permission;
+import android.webkit.PermissionRequest;
+import com.google.appinventor.components.runtime.PermissionResultHandler;
+
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -77,17 +83,19 @@ import java.util.zip.ZipInputStream;
  */
 
 // Common for every extension
-@DesignerComponent(version = 20210319,
+@DesignerComponent(version = 1,
         category = ComponentCategory.EXTENSION,
         description = "Component that classifies images using a user trained model from the image " +
                 "classification explorer. You must provide a WebViewer component in the Teachable Machine Extension " +
                 "component's WebViewer property in order for classification to work.",
-        iconName = "icon/tm.png",
+        iconName = "aiwebres/tm.png",
         nonVisible = true)
 @SimpleObject(external = true)
 // Defining the assets
-@UsesAssets(fileNames = "teachable_machine.html, teachable_machine.js, mobilenet_group1-shard1of1, mobilenet_group10-shard1of1, mobilenet_group11-shard1of1, mobilenet_group12-shard1of1, mobilenet_group13-shard1of1, mobilenet_group14-shard1of1, mobilenet_group15-shard1of1, mobilenet_group16-shard1of1, mobilenet_group17-shard1of1, mobilenet_group18-shard1of1, mobilenet_group19-shard1of1, mobilenet_group2-shard1of1, mobilenet_group20-shard1of1, mobilenet_group21-shard1of1, mobilenet_group22-shard1of1, mobilenet_group23-shard1of1, mobilenet_group24-shard1of1, mobilenet_group25-shard1of1, mobilenet_group26-shard1of1, mobilenet_group27-shard1of1, mobilenet_group28-shard1of1, mobilenet_group29-shard1of1, mobilenet_group3-shard1of1, mobilenet_group30-shard1of1, mobilenet_group31-shard1of1, mobilenet_group32-shard1of1, mobilenet_group33-shard1of1, mobilenet_group34-shard1of1, mobilenet_group35-shard1of1, mobilenet_group36-shard1of1, mobilenet_group37-shard1of1, mobilenet_group38-shard1of1, mobilenet_group39-shard1of1, mobilenet_group4-shard1of1, mobilenet_group40-shard1of1, mobilenet_group41-shard1of1, mobilenet_group42-shard1of1, mobilenet_group43-shard1of1, mobilenet_group44-shard1of1, mobilenet_group45-shard1of1, mobilenet_group46-shard1of1, mobilenet_group47-shard1of1, mobilenet_group48-shard1of1, mobilenet_group49-shard1of1, mobilenet_group5-shard1of1, mobilenet_group50-shard1of1, mobilenet_group51-shard1of1, mobilenet_group52-shard1of1, mobilenet_group53-shard1of1, mobilenet_group54-shard1of1, mobilenet_group55-shard1of1, mobilenet_group6-shard1of1, mobilenet_group7-shard1of1, mobilenet_group8-shard1of1, mobilenet_group9-shard1of1, mobilenet_model.json, squeezenet_group1-shard1of1, squeezenet_model.json, tfjs-0.13.2.js")
-@UsesPermissions(permissionNames = "android.permission.INTERNET, android.permission.CAMERA")
+@UsesAssets(fileNames = "teachable_machine.html, teachable_machine.js, tfjs-0.13.2.js")
+@UsesPermissions({Manifest.permission.CAMERA})
+
+//@UsesPermissions(permissionNames = "android.permission.INTERNET, android.permission.CAMERA")
 public final class TeachableMachine extends AndroidNonvisibleComponent
         implements Component, OnPauseListener, OnResumeListener, OnClearListener {
 
@@ -151,7 +159,7 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
 //        interpreter.run(input, output);
 //    }
     private static final String MODEL_URL =
-            "https://teachablemachine.withgoogle.com/models/bgmPxpAwO/";
+            "https://teachablemachine.withgoogle.com/models/";
     private static final String BACK_CAMERA = "Back";
     private static final String FRONT_CAMERA = "Front";
 
@@ -165,43 +173,114 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
         webview.getSettings().setMediaPlaybackRequiresUserGesture(false);
         // adds a way to send strings to the javascript
         webview.addJavascriptInterface(new JsObject(), "TeachableMachine");
+//        webview.addJavascriptInterface(new AppInventorTFJS(), "TeachableMachine");
+
         webview.setWebViewClient(new WebViewClient() {
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                final String url = request.getUrl().toString();
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
                 Log.d(LOG_TAG, "shouldInterceptRequest called");
+                // unable to understand
+                try {
+                    if ((url.startsWith(MODEL_URL)) || (url.startsWith("https://cdn.jsdelivr.net/npm/"))) {
+                        return null;
+                    }
+                    InputStream file = null;
+                    String charSet;
+                    String contentType;
+                    String fileName;
 
-                if (url.startsWith(MODEL_URL)) {
-                    Log.d(LOG_TAG, "overriding " + url);
-                    InputStream is;
-                    try {
-                        is = form.openAssetForExtension(TeachableMachine.this,
-                                url.substring(MODEL_URL.length()));
-                        String contentType, charSet;
-                        if (url.endsWith(".json")) {
-                            contentType = "application/json";
-                            charSet = "UTF-8";
-                        } else {
-                            contentType = "application/octet-stream";
-                            charSet = "binary";
+                    if (url.startsWith("http://localhost/")) {
+                        fileName = url.substring("http://localhost/".length());
+                        file = form.openAssetForExtension(TeachableMachine.this , fileName);
+                    }
+                    if (url.endsWith(".json")) {
+                        contentType = "application/json";
+                        charSet = "UTF-8";
+                    } else {
+                        contentType = "application/octet-stream";
+                        charSet = "binary";
+                    }
+
+                    // Unable to understand
+//                try {
+                    if (url.contains(MODEL_URL)) {
+                        Log.d(LOG_TAG, "overriding " + url);
+
+
+                        fileName = url.substring(MODEL_URL.length());
+                        ZipInputStream zipInputStream = new ZipInputStream(MediaUtil.openMedia(form, modelPath));
+                        ZipEntry zipEntry;
+
+
+
+                        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                            if (zipEntry.getName().equals(fileName)) {
+                                int zipEntrySize = (int) zipEntry.getSize();
+                                byte[] fileBytes = new byte[zipEntrySize];
+
+                                zipInputStream.read(fileBytes, 0, zipEntrySize);
+//                                file = new ByteArrayInputStream(fileBytes);
+                                break;
+                            }
                         }
+
+                        zipInputStream.close();
+                    }
+
+                    // For android permission
+                    if (file != null) {
                         if (SdkLevel.getLevel() >= SdkLevel.LEVEL_LOLLIPOP) {
                             Map<String, String> responseHeaders = new HashMap<>();
                             responseHeaders.put("Access-Control-Allow-Origin", "*");
-                            return new WebResourceResponse(contentType, charSet, 200, "OK", responseHeaders, is);
+                            return new WebResourceResponse(contentType, charSet, 200, "OK", responseHeaders, file);
                         } else {
-                            return new WebResourceResponse(contentType, charSet, is);
+                            return new WebResourceResponse(contentType, charSet, file);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return super.shouldInterceptRequest(view, url);
                 }
+
                 Log.d(LOG_TAG, url);
                 return super.shouldInterceptRequest(view, url);
-
-
-
             }
+//            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+//                final String url = request.getUrl().toString();
+//                Log.d(LOG_TAG, "shouldInterceptRequest called");
+//
+//                if (url.startsWith(MODEL_URL)) {
+//                    Log.d(LOG_TAG, "overriding " + url);
+//                    InputStream is;
+//                    try {
+//                        is = form.openAssetForExtension(TeachableMachine.this,
+//                                url.substring(MODEL_URL.length()));
+//                        String contentType, charSet;
+//                        if (url.endsWith(".json")) {
+//                            contentType = "application/json";
+//                            charSet = "UTF-8";
+//                        } else {
+//                            contentType = "application/octet-stream";
+//                            charSet = "binary";
+//                        }
+//                        if (SdkLevel.getLevel() >= SdkLevel.LEVEL_LOLLIPOP) {
+//                            Map<String, String> responseHeaders = new HashMap<>();
+//                            responseHeaders.put("Access-Control-Allow-Origin", "*");
+//                            return new WebResourceResponse(contentType, charSet, 200, "OK", responseHeaders, is);
+//                        } else {
+//                            return new WebResourceResponse(contentType, charSet, is);
+//                        }
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                Log.d(LOG_TAG, url);
+//                return super.shouldInterceptRequest(view, url);
+//
+//
+//
+//            }
         });
         // permission to capture video
         webview.setWebChromeClient(new WebChromeClient() {
@@ -212,6 +291,16 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
                 for (String r : requestedResources) {
                     if (r.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
                         request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+//                        form.askPermission(permission.CAMERA, new PermissionResultHandler() {
+//                            @Override
+//                            public void HandlePermissionResponse(String permission, boolean granted) {
+//                                if (granted) {
+//                                    request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+//                                } else {
+//                                    form.dispatchPermissionDeniedEvent(TeachableMachine.this, "Enable", permission);
+//                                }
+//                            }
+//                        });
                     }
                 }
             }
@@ -226,7 +315,13 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
                     ErrorMessages.ERROR_EXTENSION_ERROR, ERROR_WEBVIEWER_REQUIRED, LOG_TAG,
                     "You must specify a WebViewer component in the WebViewer property.");
         }
-//        }
+        // if model not imported
+        Log.d(LOG_TAG, "modelPath = " + modelPath);
+        if (modelPath == null) {
+            form.dispatchErrorOccurredEvent(this, "Model",
+                    ErrorMessages.ERROR_EXTENSION_ERROR, ERROR_MODEL_REQUIRED, LOG_TAG,
+                    "You must provide a model file in the Model property");
+        }
     }
 
     // same as other extension[like look]
@@ -238,13 +333,14 @@ public final class TeachableMachine extends AndroidNonvisibleComponent
                 if (webviewer != null) {
                     configureWebView((WebView) webviewer.getView());
                     webview.requestLayout();
-                    try {
-                        Log.d(LOG_TAG, "isHardwareAccelerated? " + webview.isHardwareAccelerated());
-                        webview.loadUrl(form.getAssetPathForExtension(TeachableMachine.this, "teachable_machine.html"));
-                    } catch (FileNotFoundException e) {
-                        Log.d(LOG_TAG, e.getMessage());
-                        e.printStackTrace();
-                    }
+//                    try {
+                    Log.d(LOG_TAG, "isHardwareAccelerated? " + webview.isHardwareAccelerated());
+//                        webview.loadUrl(form.getAssetPathForExtension("https://localhost/teachable_machine.html"));
+                    webview.loadUrl("http://localhost/teachable_machine.html");
+//                    } catch (IOException e) {
+//                        Log.d(LOG_TAG, e.getMessage());
+//                        e.printStackTrace();
+//                    }
                 }
             }
         };
